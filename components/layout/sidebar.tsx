@@ -1,20 +1,32 @@
-"use client"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useAuth } from "@/components/providers/auth-provider"
-import { BarChart3, Box, Home, LogOut, Menu, Package, Settings, Users, AlertTriangle, Plus, Minus } from "lucide-react"
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/components/providers/auth-provider";
+import {
+  BarChart3,
+  Box,
+  Home,
+  LogOut,
+  Menu,
+  Package,
+  Settings,
+  Users,
+  AlertTriangle,
+  Plus,
+  Minus,
+} from "lucide-react";
 
 interface SidebarProps {
-  className?: string
+  className?: string;
 }
 
 export function Sidebar({ className }: SidebarProps) {
-  const { user, logout } = useAuth()
-  const pathname = usePathname()
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
 
   const userNavItems = [
     {
@@ -42,7 +54,7 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/user/profile",
       icon: Settings,
     },
-  ]
+  ];
 
   const adminNavItems = [
     {
@@ -85,12 +97,12 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/admin/profile",
       icon: Settings,
     },
-  ]
+  ];
 
-  const navItems = user?.role === "admin" ? adminNavItems : userNavItems
+  const navItems = user?.role === "admin" ? adminNavItems : userNavItems;
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-gray-300">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Package className="h-6 w-6" />
@@ -105,7 +117,7 @@ export function Sidebar({ className }: SidebarProps) {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                pathname === item.href && "bg-muted text-primary",
+                pathname === item.href && "bg-muted text-primary"
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -115,25 +127,29 @@ export function Sidebar({ className }: SidebarProps) {
         </nav>
       </ScrollArea>
       <div className="mt-auto p-4">
-        <Button variant="outline" className="w-full justify-start" onClick={logout}>
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={logout}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className={cn("hidden border-r bg-muted/40 md:block", className)}>
       <SidebarContent />
     </div>
-  )
+  );
 }
 
 // Mobile Sidebar Component
 export function MobileSidebar() {
-  const { user, logout } = useAuth()
-  const pathname = usePathname()
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
 
   const userNavItems = [
     {
@@ -161,7 +177,7 @@ export function MobileSidebar() {
       href: "/user/profile",
       icon: Settings,
     },
-  ]
+  ];
 
   const adminNavItems = [
     {
@@ -204,9 +220,9 @@ export function MobileSidebar() {
       href: "/admin/profile",
       icon: Settings,
     },
-  ]
+  ];
 
-  const navItems = user?.role === "admin" ? adminNavItems : userNavItems
+  const navItems = user?.role === "admin" ? adminNavItems : userNavItems;
 
   return (
     <Sheet>
@@ -232,7 +248,7 @@ export function MobileSidebar() {
                   href={item.href}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname === item.href && "bg-muted text-primary",
+                    pathname === item.href && "bg-muted text-primary"
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -242,7 +258,11 @@ export function MobileSidebar() {
             </nav>
           </ScrollArea>
           <div className="mt-auto p-4">
-            <Button variant="outline" className="w-full justify-start" onClick={logout}>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={logout}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
@@ -250,5 +270,5 @@ export function MobileSidebar() {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

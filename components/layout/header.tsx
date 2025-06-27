@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Bell, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Bell, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,16 +10,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useAuth } from "@/components/providers/auth-provider"
-import { MobileSidebar } from "./sidebar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/components/providers/auth-provider";
+import { MobileSidebar } from "./sidebar";
 
 export function Header() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-gray-300 px-4 lg:h-[60px] lg:px-6">
       <MobileSidebar />
 
       <div className="w-full flex-1">
@@ -44,7 +44,10 @@ export function Header() {
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.image || "/placeholder.svg"} alt={user?.username} />
+              <AvatarImage
+                src={user?.image || "/placeholder.svg"}
+                alt={user?.username}
+              />
               <AvatarFallback>
                 {user?.firstName?.[0]}
                 {user?.lastName?.[0]}
@@ -65,5 +68,5 @@ export function Header() {
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
-  )
+  );
 }

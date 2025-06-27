@@ -300,7 +300,7 @@ export default function AdminDashboard() {
         {/* Recent Orders */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+            {/* <CardTitle>Recent Orders</CardTitle> */}
             <CardDescription>Latest customer orders</CardDescription>
           </CardHeader>
           <CardContent>
