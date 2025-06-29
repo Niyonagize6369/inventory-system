@@ -391,9 +391,9 @@ export default function AdminUsersPage() {
                             : "bg-slate-100 text-slate-700"
                         }`}
                       >
-                        {user.role === "admin" && (
+                        {/* {user.role === "admin" && (
                           <Shield className="h-3 w-3" />
-                        )}
+                        )} */}
                         {user.role === "admin" ? "Administrator" : "User"}
                       </Badge>
                     </TableCell>
