@@ -189,10 +189,8 @@ export default function AdminProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
               Personal Information
             </CardTitle>
-            <CardDescription>Update your personal details</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileSubmit} className="space-y-4">

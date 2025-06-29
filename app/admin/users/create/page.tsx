@@ -1,29 +1,41 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2, ArrowLeft, Upload, Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, ArrowLeft, Upload, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 interface UserForm {
-  username: string
-  firstName: string
-  lastName: string
-  email: string
-  password: string
-  confirmPassword: string
-  role: "user" | "admin"
-  status: "active" | "disabled"
-  image: string
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: "user" | "admin";
+  status: "active" | "disabled";
+  image: string;
 }
 
 export default function CreateUserPage() {
@@ -37,62 +49,68 @@ export default function CreateUserPage() {
     role: "user",
     status: "active",
     image: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [imageLoading, setImageLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setImageLoading(true)
+    setImageLoading(true);
 
     try {
       // Mock image upload - replace with actual upload logic
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Create a mock URL for the uploaded image
-      const imageUrl = URL.createObjectURL(file)
-      setFormData((prev) => ({ ...prev, image: imageUrl }))
+      const imageUrl = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, image: imageUrl }));
 
       toast({
         title: "Image uploaded",
         description: "Profile image has been uploaded successfully",
-      })
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to upload image. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setImageLoading(false)
+      setImageLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validation
-    if (!formData.username || !formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+    if (
+      !formData.username ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.password
+    ) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -100,8 +118,8 @@ export default function CreateUserPage() {
         title: "Error",
         description: "Passwords do not match",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (formData.password.length < 6) {
@@ -109,43 +127,43 @@ export default function CreateUserPage() {
         title: "Error",
         description: "Password must be at least 6 characters long",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast({
         title: "Error",
         description: "Please enter a valid email address",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast({
         title: "User created",
         description: `User ${formData.firstName} ${formData.lastName} has been successfully created`,
-      })
+      });
 
-      router.push("/admin/users")
+      router.push("/admin/users");
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create user. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <DashboardLayout>
@@ -155,59 +173,23 @@ export default function CreateUserPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-lg font-semibold md:text-2xl">Create New User</h1>
+        <h1 className="text-lg font-bold text-gray-800 md:text-2xl">
+          Create New User
+        </h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>User Information</CardTitle>
-          <CardDescription>Enter the details for the new user account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Profile Image */}
-              <div className="space-y-4">
-                <Label>Profile Image (Optional)</Label>
-                <div className="flex flex-col items-center gap-4">
-                  {formData.image ? (
-                    <img
-                      src={formData.image || "/placeholder.svg"}
-                      alt="Profile preview"
-                      className="h-24 w-24 rounded-full object-cover border"
-                    />
-                  ) : (
-                    <div className="h-24 w-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center">
-                      <Upload className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  )}
-                  <Label htmlFor="image-upload" className="cursor-pointer">
-                    <Button variant="outline" disabled={imageLoading} asChild>
-                      <span>
-                        {imageLoading ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="mr-2 h-4 w-4" />
-                        )}
-                        Upload Image
-                      </span>
-                    </Button>
-                  </Label>
-                  <Input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                </div>
-              </div>
-
               {/* User Details */}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name *</Label>
+                    <Label htmlFor="firstName">First Name</Label>
                     <Input
                       id="firstName"
                       name="firstName"
@@ -215,10 +197,11 @@ export default function CreateUserPage() {
                       onChange={handleInputChange}
                       placeholder="Enter first name"
                       required
+                      className="text-gray-800"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Label htmlFor="lastName">Last Name</Label>
                     <Input
                       id="lastName"
                       name="lastName"
@@ -226,12 +209,13 @@ export default function CreateUserPage() {
                       onChange={handleInputChange}
                       placeholder="Enter last name"
                       required
+                      className="text-gray-800"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username *</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
                     id="username"
                     name="username"
@@ -239,11 +223,12 @@ export default function CreateUserPage() {
                     onChange={handleInputChange}
                     placeholder="Enter username"
                     required
+                    className="text-gray-800"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     name="email"
@@ -252,6 +237,7 @@ export default function CreateUserPage() {
                     onChange={handleInputChange}
                     placeholder="Enter email address"
                     required
+                    className="text-gray-800"
                   />
                 </div>
 
@@ -260,7 +246,12 @@ export default function CreateUserPage() {
                     <Label htmlFor="role">Role</Label>
                     <Select
                       value={formData.role}
-                      onValueChange={(value) => setFormData((prev) => ({ ...prev, role: value as "user" | "admin" }))}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          role: value as "user" | "admin",
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -277,7 +268,10 @@ export default function CreateUserPage() {
                     <Select
                       value={formData.status}
                       onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, status: value as "active" | "disabled" }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          status: value as "active" | "disabled",
+                        }))
                       }
                     >
                       <SelectTrigger>
@@ -294,9 +288,9 @@ export default function CreateUserPage() {
             </div>
 
             {/* Password Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -314,13 +308,17 @@ export default function CreateUserPage() {
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -338,7 +336,11 @@ export default function CreateUserPage() {
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -348,10 +350,19 @@ export default function CreateUserPage() {
             <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
               <p className="font-medium mb-2">Password requirements:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li className={formData.password.length >= 6 ? "text-green-600" : ""}>At least 6 characters long</li>
                 <li
                   className={
-                    formData.password === formData.confirmPassword && formData.password ? "text-green-600" : ""
+                    formData.password.length >= 6 ? "text-green-600" : ""
+                  }
+                >
+                  At least 6 characters long
+                </li>
+                <li
+                  className={
+                    formData.password === formData.confirmPassword &&
+                    formData.password
+                      ? "text-green-600"
+                      : ""
                   }
                 >
                   Passwords match
@@ -359,49 +370,24 @@ export default function CreateUserPage() {
               </ul>
             </div>
 
-            {/* Summary */}
-            {formData.firstName && formData.lastName && (
-              <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-2">User Summary</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span>Name:</span>
-                    <span>
-                      {formData.firstName} {formData.lastName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Username:</span>
-                    <span>@{formData.username}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Email:</span>
-                    <span>{formData.email}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Role:</span>
-                    <span className="capitalize">{formData.role}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className="capitalize">{formData.status}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="flex gap-4">
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                className="bg-gray-700 hover:bg-gray-900 text-white"
+                type="submit"
+                disabled={isLoading}
+              >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create User
               </Button>
               <Link href="/admin/users">
-                <Button variant="outline">Cancel</Button>
+                <Button className="bg-gray-700 hover:bg-gray-900 text-white">
+                  Cancel
+                </Button>
               </Link>
             </div>
           </form>
         </CardContent>
       </Card>
     </DashboardLayout>
-  )
+  );
 }
