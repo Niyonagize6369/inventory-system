@@ -159,9 +159,7 @@ export default function AdminDashboard() {
             <div className="text-2xl font-bold">
               ${stats.inventoryValue.toLocaleString()}
             </div>
-            {/* <p className="text-xs text-muted-foreground">
-              +12% from last month
-            </p> */}
+           
           </CardContent>
         </Card>
 
@@ -174,7 +172,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            {/* <p className="text-xs text-muted-foreground">+3 new this week</p> */}
+        
           </CardContent>
         </Card>
 

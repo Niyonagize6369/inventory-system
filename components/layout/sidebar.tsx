@@ -67,11 +67,7 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/admin/products",
       icon: Package,
     },
-    {
-      title: "Categories",
-      href: "/admin/categories",
-      icon: Box,
-    },
+
     {
       title: "Users",
       href: "/admin/users",
@@ -87,11 +83,7 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/admin/stock-out",
       icon: Minus,
     },
-    {
-      title: "Reports",
-      href: "/admin/reports",
-      icon: BarChart3,
-    },
+
     {
       title: "Profile",
       href: "/admin/profile",

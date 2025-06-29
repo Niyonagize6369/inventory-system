@@ -1,7 +1,5 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -11,9 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { useAuth } from "@/components/providers/auth-provider";
 import { MobileSidebar } from "./sidebar";
+import { Search } from "lucide-react";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -35,27 +34,8 @@ export function Header() {
         </form>
       </div>
 
-      <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-        <Bell className="h-4 w-4" />
-        <span className="sr-only">Toggle notifications</span>
-      </Button>
-
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={user?.image || "/placeholder.svg"}
-                alt={user?.username}
-              />
-              <AvatarFallback>
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <span className="sr-only">Toggle user menu</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild></DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />

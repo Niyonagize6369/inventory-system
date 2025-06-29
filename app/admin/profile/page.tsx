@@ -182,62 +182,9 @@ export default function AdminProfilePage() {
         <h1 className="text-lg font-semibold md:text-2xl">
           Admin Profile Settings
         </h1>
-        <Badge variant="default" className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          Administrator
-        </Badge>
       </div>
 
       <div className="grid gap-6">
-        {/* Profile Picture */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Picture
-            </CardTitle>
-            <CardDescription>Update your profile picture</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage
-                  src={user?.image || "/placeholder.svg"}
-                  alt={user?.username}
-                />
-                <AvatarFallback className="text-lg">
-                  {user?.firstName?.[0]}
-                  {user?.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <Label htmlFor="image-upload" className="cursor-pointer">
-                  <Button variant="outline" disabled={imageLoading} asChild>
-                    <span>
-                      {imageLoading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Camera className="mr-2 h-4 w-4" />
-                      )}
-                      Change picture
-                    </span>
-                  </Button>
-                </Label>
-                <Input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <p className="text-sm text-muted-foreground mt-2">
-                  JPG, PNG or GIF. Max size 2MB.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Personal Information */}
         <Card>
           <CardHeader>
@@ -308,7 +255,11 @@ export default function AdminProfilePage() {
                   placeholder="Enter your email"
                 />
               </div>
-              <Button type="submit" disabled={profileLoading}>
+              <Button
+                className="bg-gray-600 hover:bg-gray-700 hover:text-white"
+                type="submit"
+                disabled={profileLoading}
+              >
                 {profileLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
@@ -325,7 +276,6 @@ export default function AdminProfilePage() {
               <Lock className="h-5 w-5" />
               Change Password
             </CardTitle>
-            <CardDescription>Update your account password</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -458,7 +408,11 @@ export default function AdminProfilePage() {
                 </ul>
               </div>
 
-              <Button type="submit" disabled={passwordLoading}>
+              <Button
+                className="bg-gray-600 hover:bg-gray-700 hover:text-white"
+                type="submit"
+                disabled={passwordLoading}
+              >
                 {passwordLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
@@ -466,41 +420,6 @@ export default function AdminProfilePage() {
               </Button>
             </form>
           </CardContent>
-        </Card>
-
-        {/* Admin Privileges */}
-        <Card>
-          <CardHeader>
-            {/* <CardTitle className="flex items-center gap-2"> */}
-            {/* <Shield className="h-5 w-5" /> */}
-            {/* Administrator Privileges */}
-            {/* </CardTitle> */}
-            {/* <CardDescription>Your current administrative permissions</CardDescription> */}
-          </CardHeader>
-          {/* <CardContent> */}
-          {/* <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Manage Products</span>
-                <Badge variant="default">Enabled</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Manage Users</span>
-                <Badge variant="default">Enabled</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">View Reports</span>
-                <Badge variant="default">Enabled</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Manage Categories</span>
-                <Badge variant="default">Enabled</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Stock Management</span>
-                <Badge variant="default">Enabled</Badge>
-              </div>
-            </div> */}
-          {/* </CardContent> */}
         </Card>
       </div>
     </DashboardLayout>
