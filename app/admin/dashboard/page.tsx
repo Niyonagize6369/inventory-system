@@ -105,9 +105,6 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalProducts}</div>
-            {/* <p className="text-xs text-muted-foreground">
-              Across {stats.totalCategories} categories
-            </p> */}
           </CardContent>
         </Card>
 
@@ -131,7 +128,6 @@ export default function AdminDashboard() {
             <CardTitle className="text-sm font-bold text-gray-800">
               Stock In (This Month)
             </CardTitle>
-            {/* <Plus className="h-4 w-4 text-green-600" /> */}
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.stockIn}</div>
@@ -143,7 +139,6 @@ export default function AdminDashboard() {
             <CardTitle className="text-sm font-bold text-gray-800">
               Stock Out (This Month)
             </CardTitle>
-            {/* <Minus className="h-4 w-4 text-red-600" /> */}
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.stockOut}</div>
@@ -181,13 +176,6 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-
-        <CardContent>
-          {/* <div className="space-y-4"> */}
-
-          {/* </div> */}
-        </CardContent>
-        {/* </Card> */}
       </div>
     </DashboardLayout>
   );
