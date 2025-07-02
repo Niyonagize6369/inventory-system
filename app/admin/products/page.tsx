@@ -73,76 +73,9 @@ export default function AdminProductsPage() {
   const productsPerPage = 10;
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Mock data - replace with actual API call
-    const mockProducts: Product[] = [
-      {
-        id: "1",
-        name: "Laptop Dell XPS 13",
-        price: 1200,
-        category: "Electronics",
-        stock: 15,
-        image: "/placeholder.svg?height=60&width=60",
-        description: "High-performance laptop with Intel Core i7",
-        createdAt: "2024-01-10",
-        status: "active",
-      },
-      {
-        id: "2",
-        name: "Office Chair",
-        price: 250,
-        category: "Furniture",
-        stock: 8,
-        image: "/placeholder.svg?height=60&width=60",
-        description: "Ergonomic office chair with lumbar support",
-        createdAt: "2024-01-12",
-        status: "active",
-      },
-      {
-        id: "3",
-        name: "Wireless Mouse",
-        price: 35,
-        category: "Electronics",
-        stock: 45,
-        image: "/placeholder.svg?height=60&width=60",
-        description: "Bluetooth wireless mouse with precision tracking",
-        createdAt: "2024-01-08",
-        status: "active",
-      },
-      {
-        id: "4",
-        name: "Notebook A4",
-        price: 5,
-        category: "Stationery",
-        stock: 0,
-        image: "/placeholder.svg?height=60&width=60",
-        description: "Premium quality A4 notebook with lined pages",
-        createdAt: "2024-01-15",
-        status: "inactive",
-      },
-      {
-        id: "5",
-        name: "Monitor 24 inch",
-        price: 300,
-        category: "Electronics",
-        stock: 22,
-        image: "/placeholder.svg?height=60&width=60",
-        description: "Full HD 24-inch monitor with IPS panel",
-        createdAt: "2024-01-05",
-        status: "active",
-      },
-    ];
+ 
 
-    setProducts(mockProducts);
-    setFilteredProducts(mockProducts);
-
-    // Extract unique categories
-    const uniqueCategories = Array.from(
-      new Set(mockProducts.map((p) => p.category))
-    );
-    setCategories(uniqueCategories);
-  }, []);
-
+  
   useEffect(() => {
     let filtered = products;
 

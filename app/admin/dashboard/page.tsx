@@ -52,93 +52,15 @@ export default function AdminDashboard() {
     stockAlerts: 0,
   });
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
-  // const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
 
-  // useEffect(() => {
-  //   // Mock data - replace with actual API calls
-  //   const mockStats: DashboardStats = {
-  //     inventoryValue: 125000,
-  //     totalUsers: 45,
-  //     totalProducts: 156,
-  //     totalCategories: 12,
-  //     totalEmployees: 8,
-  //     stockIn: 234,
-  //     stockOut: 189,
-  //     stockAlerts: 7,
-  //   };
-
-  //   const mockTopProducts: TopProduct[] = [
-  //     {
-  //       id: "1",
-  //       name: "Laptop Dell XPS 13",
-  //       category: "Electronics",
-  //       sold: 45,
-  //       revenue: 54000,
-  //     },
-  //     {
-  //       id: "2",
-  //       name: "Office Chair",
-  //       category: "Furniture",
-  //       sold: 32,
-  //       revenue: 8000,
-  //     },
-  //     {
-  //       id: "3",
-  //       name: "Wireless Mouse",
-  //       category: "Electronics",
-  //       sold: 78,
-  //       revenue: 2730,
-  //     },
-  //     {
-  //       id: "4",
-  //       name: 'Monitor 24"',
-  //       category: "Electronics",
-  //       sold: 28,
-  //       revenue: 8400,
-  //     },
-  //     {
-  //       id: "5",
-  //       name: "Desk Lamp",
-  //       category: "Furniture",
-  //       sold: 56,
-  //       revenue: 2800,
-  //     },
-  //   ];
-
-  //   const mockRecentOrders: RecentOrder[] = [
-  //     {
-  //       id: "ORD-001",
-  //       customerName: "John Smith",
-  //       product: "Laptop Dell XPS 13",
-  //       quantity: 2,
-  //       total: 2400,
-  //       date: "2024-01-15",
-  //       status: "completed",
-  //     },
-  //     {
-  //       id: "ORD-002",
-  //       customerName: "Sarah Johnson",
-  //       product: "Office Chair",
-  //       quantity: 1,
-  //       total: 250,
-  //       date: "2024-01-15",
-  //       status: "pending",
-  //     },
-  //     {
-  //       id: "ORD-003",
-  //       customerName: "Mike Wilson",
-  //       product: "Wireless Mouse",
-  //       quantity: 5,
-  //       total: 175,
-  //       date: "2024-01-14",
-  //       status: "completed",
-  //     },
-  //   ];
-
-  //   setStats(mockStats);
-  //   setTopProducts(mockTopProducts);
-  //   setRecentOrders(mockRecentOrders);
-  // }, []);
+  useEffect(() => {
+    fetch("http://localhost:5000/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Fetched data:", data);
+        setTopProducts(data.data); // make sure you access .data
+      });
+  }, []);
 
   return (
     <DashboardLayout>
@@ -159,7 +81,6 @@ export default function AdminDashboard() {
             <div className="text-2xl font-bold">
               ${stats.inventoryValue.toLocaleString()}
             </div>
-           
           </CardContent>
         </Card>
 
@@ -172,7 +93,6 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
-        
           </CardContent>
         </Card>
 

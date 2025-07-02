@@ -62,6 +62,8 @@ export default function CreateProductPage() {
     "Home & Garden",
   ];
 
+  // Removed invalid fetch call with ellipsis; actual product creation is handled in handleSubmit.
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -72,68 +74,29 @@ export default function CreateProductPage() {
     }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setImageLoading(true);
-
-    try {
-      // Mock image upload - replace with actual upload logic
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Create a mock URL for the uploaded image
-      const imageUrl = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, image: imageUrl }));
-
-      toast({
-        title: "Image uploaded",
-        description: "Product image has been uploaded successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setImageLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.category || formData.price <= 0) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields with valid values",
-        variant: "destructive",
-      });
-      return;
-    }
+    const res = await fetch("http://localhost:5000/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        price: Number(formData.price),
+        description: formData.description,
+        quantity: Number(formData.stock),
+        category: formData.category,
+        image: formData.image,
+        status: formData.status,
+      }),
+    });
 
-    setIsLoading(true);
+    const result = await res.json();
+    console.log(result);
 
-    try {
-      // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast({
-        title: "Product created",
-        description: "The product has been successfully created",
-      });
-
-      router.push("/admin/products");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create product. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Optionally re-fetch or navigate
   };
 
   return (
