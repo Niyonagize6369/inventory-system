@@ -1,31 +1,18 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
+// These interfaces should match your backend and what you want to use in the frontend
 interface User {
   id: string
   username: string
-  firstName: string
-  lastName: string
+  first_name: string 
+  last_name: string
   email: string
-  image?: string
+  image_url?: string
   role: "user" | "admin"
-}
-
-interface AuthContextType {
-  user: User | null
-  login: (username: string, password: string) => Promise<boolean>
-  logout: () => void
-  register: (data: RegisterData) => Promise<boolean>
-  updateProfile: (data: Partial<User>) => Promise<boolean>
-  forgotPassword: (email: string) => Promise<boolean>
-  resetPassword: (token: string, password: string, confirmPassword: string) => Promise<boolean>
-  verifyEmail: (token: string) => Promise<boolean>
-  changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<boolean>
-  isLoading: boolean
 }
 
 interface RegisterData {
@@ -38,7 +25,29 @@ interface RegisterData {
   image?: string
 }
 
+interface AuthContextType {
+  user: User | null
+  login: (username: string, password: string) => Promise<{ success: boolean; message: string }>
+  logout: () => void
+  register: (data: RegisterData) => Promise<{ success: boolean; message: string }>
+  updateProfile: (data: Partial<User>) => Promise<{ success: boolean; message: string }>
+  forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>
+  resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>
+  verifyEmail: (token: string) => Promise<{ success: boolean; message: string }>
+  changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<{ success: boolean; message: string }>
+  isLoading: boolean
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// --- Helper Functions ---
+const getApiUrl = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("authToken");
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+// ------------------------
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -46,154 +55,191 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-    setIsLoading(false)
-  }, [])
-
-  const login = async (username: string, password: string): Promise<boolean> => {
-    try {
-      // Mock authentication - replace with actual API call
-      const mockUser: User = {
-        id: "1",
-        username,
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@example.com",
-        role: username === "admin" ? "admin" : "user",
-        image: "/placeholder.svg?height=40&width=40",
+    const verifySession = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const res = await fetch(getApiUrl("/auth/profile"), {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const userData = await res.json();
+            setUser(userData); // This will now correctly set the user with first_name, last_name
+          } else {
+            localStorage.removeItem("authToken");
+          }
+        } catch (error) {
+          console.error("Session verification failed:", error);
+          localStorage.removeItem("authToken");
+        }
       }
+      setIsLoading(false);
+    };
+    verifySession();
+  }, []);
 
-      setUser(mockUser)
-      localStorage.setItem("user", JSON.stringify(mockUser))
+  const login = async (username: string, password: string) => {
+    try {
+      const res = await fetch(getApiUrl("/auth/login"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-      // Navigate to appropriate dashboard
-      if (mockUser.role === "admin") {
-        router.push("/admin/dashboard")
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, message: data.message || "Login failed." };
+      }
+      
+      localStorage.setItem("authToken", data.token);
+      setUser(data.user);
+
+      if (data.user.role === "admin") {
+        router.push("/admin/dashboard");
       } else {
-        router.push("/user/dashboard")
+        router.push("/user/dashboard");
       }
 
-      return true
+      return { success: true, message: "Login successful!" };
     } catch (error) {
-      return false
+      return { success: false, message: "An unexpected error occurred." };
     }
-  }
+  };
 
-  const register = async (data: RegisterData): Promise<boolean> => {
+  const register = async (data: RegisterData) => {
     try {
-      // Mock registration - replace with actual API call
-      const newUser: User = {
-        id: Date.now().toString(),
-        username: data.username,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        role: "user",
-        image: data.image,
+      const res = await fetch(getApiUrl("/auth/register"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) {
+        return { success: false, message: responseData.message || "Registration failed." };
       }
 
-      setUser(newUser)
-      localStorage.setItem("user", JSON.stringify(newUser))
-
-      // Navigate to user dashboard after registration
-      router.push("/user/dashboard")
-
-      return true
+      return { success: true, message: responseData.message };
     } catch (error) {
-      return false
+      return { success: false, message: "An unexpected error occurred." };
     }
-  }
-
-  const updateProfile = async (data: Partial<User>): Promise<boolean> => {
-    try {
-      if (user) {
-        const updatedUser = { ...user, ...data }
-        setUser(updatedUser)
-        localStorage.setItem("user", JSON.stringify(updatedUser))
-      }
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-
-  const forgotPassword = async (email: string): Promise<boolean> => {
-    try {
-      // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Password reset email sent to:", email)
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-
-  const resetPassword = async (token: string, password: string, confirmPassword: string): Promise<boolean> => {
-    try {
-      if (password !== confirmPassword) {
-        return false
-      }
-      // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Password reset successful for token:", token)
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-
-  const verifyEmail = async (token: string): Promise<boolean> => {
-    try {
-      // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Email verified for token:", token)
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-
-  const changePassword = async (
-    currentPassword: string,
-    newPassword: string,
-    confirmPassword: string,
-  ): Promise<boolean> => {
-    try {
-      if (newPassword !== confirmPassword) {
-        return false
-      }
-      // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Password changed successfully")
-      return true
-    } catch (error) {
-      return false
-    }
-  }
+  };
 
   const logout = () => {
-    setUser(null)
-    localStorage.removeItem("user")
-    router.push("/auth/login")
-  }
+    setUser(null);
+    localStorage.removeItem("authToken");
+    router.push("/auth/login"); // Or your preferred login page
+  };
+  
+  const verifyEmail = async (token: string) => {
+    try {
+      const res = await fetch(getApiUrl(`/auth/verify/${token}`));
+      if (!res.ok) {
+        const data = await res.json();
+        return { success: false, message: data.message || 'Verification failed.' };
+      }
+      return { success: true, message: 'Email verified successfully!' };
+    } catch (error) {
+      return { success: false, message: 'An unexpected error occurred.' };
+    }
+  };
 
+  const forgotPassword = async (email: string) => {
+    try {
+      const res = await fetch(getApiUrl("/auth/forgot-password"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      return { success: res.ok, message: data.message };
+    } catch (error) {
+      return { success: false, message: 'An unexpected error occurred.' };
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    try {
+      const res = await fetch(getApiUrl(`/auth/reset-password/${token}`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      return { success: res.ok, message: data.message };
+    } catch (error) {
+      return { success: false, message: 'An unexpected error occurred.' };
+    }
+  };
+
+   const changePassword = async (currentPassword: string, newPassword: string, confirmPassword: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) { headers['Authorization'] = `Bearer ${token}`; }
+
+      const res = await fetch(getApiUrl("/auth/change-password"), {
+        method: 'PUT',
+        headers,
+        
+        body: JSON.stringify({ 
+          previousPassword: currentPassword, 
+          newPassword: newPassword,
+          confirmNewPassword: confirmPassword, 
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to change password.");
+      }
+      return { success: true, message: data.message };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const updateProfile = async (updateData: Partial<User>) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(getApiUrl("/auth/profile"), {
+        method: 'PUT',
+        headers: headers, 
+        body: JSON.stringify(updateData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, message: data.message };
+      }
+
+      setUser(prevUser => prevUser ? { ...prevUser, ...data } : null);
+      
+      return { success: true, message: "Profile updated successfully!" };
+    } catch (error) {
+      return { success: false, message: 'An unexpected error occurred.' };
+    }
+};  
   return (
     <AuthContext.Provider
       value={{
         user,
+        isLoading,
         login,
         logout,
         register,
-        updateProfile,
+        verifyEmail,
         forgotPassword,
         resetPassword,
-        verifyEmail,
         changePassword,
-        isLoading,
+        updateProfile
       }}
     >
       {children}

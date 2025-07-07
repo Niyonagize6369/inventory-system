@@ -79,7 +79,6 @@ export default function AdminAlertsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Mock data - replace with actual API call
     const mockAlerts: Alert[] = [
       {
         id: "1",
@@ -182,19 +181,19 @@ export default function AdminAlertsPage() {
       );
     }
 
-    // Filter by type
+    
     if (selectedType !== "all") {
       filtered = filtered.filter((alert) => alert.type === selectedType);
     }
 
-    // Filter by severity
+    
     if (selectedSeverity !== "all") {
       filtered = filtered.filter(
         (alert) => alert.severity === selectedSeverity
       );
     }
 
-    // Filter by status
+  
     if (selectedStatus === "unread") {
       filtered = filtered.filter((alert) => !alert.isRead);
     } else if (selectedStatus === "unresolved") {
@@ -207,7 +206,7 @@ export default function AdminAlertsPage() {
     setCurrentPage(1);
   }, [searchTerm, selectedType, selectedSeverity, selectedStatus, alerts]);
 
-  // Pagination
+  
   const indexOfLastAlert = currentPage * alertsPerPage;
   const indexOfFirstAlert = indexOfLastAlert - alertsPerPage;
   const currentAlerts = filteredAlerts.slice(
@@ -349,7 +348,7 @@ export default function AdminAlertsPage() {
         </Button>
       </div>
 
-      {/* Summary Cards */}
+      
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -381,7 +380,7 @@ export default function AdminAlertsPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+    
       <Card>
         <CardHeader>
           <CardTitle>Filter & Search</CardTitle>
@@ -444,7 +443,7 @@ export default function AdminAlertsPage() {
         </CardContent>
       </Card>
 
-      {/* Alerts Table */}
+      
       <Card>
         <CardHeader>
           <CardTitle>Alerts ({filteredAlerts.length})</CardTitle>
@@ -585,7 +584,7 @@ export default function AdminAlertsPage() {
             </TableBody>
           </Table>
 
-          {/* Pagination */}
+        
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-4">
               <Button

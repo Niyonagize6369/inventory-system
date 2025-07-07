@@ -67,12 +67,10 @@ export default function EditUserPage() {
   const params = useParams();
 
   useEffect(() => {
-    // Mock API call to fetch user - replace with actual API
     const fetchUser = async () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Mock user data - replace with actual API call
         const mockUser: User = {
           id: params.id as string,
           username: "johndoe",
@@ -134,10 +132,8 @@ export default function EditUserPage() {
     setImageLoading(true);
 
     try {
-      // Mock image upload - replace with actual upload logic
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Create a mock URL for the uploaded image
       const imageUrl = URL.createObjectURL(file);
       setFormData((prev) => ({ ...prev, image: imageUrl }));
 
@@ -159,7 +155,7 @@ export default function EditUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
+    
     if (
       !formData.username ||
       !formData.firstName ||
@@ -174,7 +170,7 @@ export default function EditUserPage() {
       return;
     }
 
-    // Password validation if changing password
+    
     if (changePassword) {
       if (passwordData.newPassword !== passwordData.confirmPassword) {
         toast({
@@ -195,7 +191,7 @@ export default function EditUserPage() {
       }
     }
 
-    // Email validation
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast({
@@ -209,7 +205,6 @@ export default function EditUserPage() {
     setIsLoading(true);
 
     try {
-      // Mock API call - replace with actual API
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast({

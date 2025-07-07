@@ -1,55 +1,48 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Package, Search, TrendingUp } from "lucide-react";
+import { Loader2, Package, Search, X } from "lucide-react";
+
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   price: number;
-  category: string;
-  stock: number;
-  image: string;
+  category_id: number; 
+  quantity: number;    
+  image_url: string;
 }
 
-interface StockInForm {
-  productId: string;
-  productName: string;
-  price: number;
-  category: string;
+interface StockInFormData {
   quantity: number;
   supplier: string;
   purchasePrice: number;
   notes: string;
 }
 
+// --- Helper ---
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("authToken");
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+};
+
 export default function AdminStockInPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<StockInForm>({
-    productId: "",
-    productName: "",
-    price: 0,
-    category: "",
+  const [formData, setFormData] = useState<StockInFormData>({
     quantity: 1,
     supplier: "",
     purchasePrice: 0,
@@ -57,293 +50,153 @@ export default function AdminStockInPage() {
   });
 
   const { toast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
-    console.log("Loading stock-in page...");
-
     const fetchProducts = async () => {
       try {
-        setIsLoading(true);
+        const headers = getAuthHeaders();
+        const response = await fetch("http://localhost:5000/api/products", { headers });
+        if (!response.ok) throw new Error("Failed to load products.");
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        const mockProducts: Product[] = [
-          {
-            id: "1",
-            name: "Laptop Dell XPS 13",
-            price: 1200,
-            category: "Electronics",
-            stock: 15,
-            image: "/placeholder.svg?height=60&width=60",
-          },
-          {
-            id: "2",
-            name: "Office Chair Ergonomic",
-            price: 250,
-            category: "Furniture",
-            stock: 8,
-            image: "/placeholder.svg?height=60&width=60",
-          },
-          {
-            id: "3",
-            name: "Wireless Mouse Logitech",
-            price: 35,
-            category: "Electronics",
-            stock: 45,
-            image: "/placeholder.svg?height=60&width=60",
-          },
-          {
-            id: "4",
-            name: "Monitor 24 inch 4K",
-            price: 300,
-            category: "Electronics",
-            stock: 22,
-            image: "/placeholder.svg?height=60&width=60",
-          },
-          {
-            id: "5",
-            name: "Desk Lamp LED",
-            price: 45,
-            category: "Office Supplies",
-            stock: 3,
-            image: "/placeholder.svg?height=60&width=60",
-          },
-        ];
-
-        console.log("Products loaded:", mockProducts.length);
-        setProducts(mockProducts);
-        setFilteredProducts(mockProducts);
+        const data = await response.json();
+        setProducts(data.data || []);
       } catch (error) {
-        console.error("Error loading products:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load products. Please refresh the page.",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Could not load products.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchProducts();
   }, [toast]);
 
-  useEffect(() => {
-    if (searchTerm.trim()) {
-      const filtered = products.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.id.includes(searchTerm)
-      );
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
-  }, [searchTerm, products]);
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    return products.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
 
   const handleProductSelect = (product: Product) => {
-    console.log("Product selected:", product.name);
     setSelectedProduct(product);
-    setFormData({
-      productId: product.id,
-      productName: product.name,
-      price: product.price,
-      category: product.category,
-      quantity: 1,
-      supplier: "",
-      purchasePrice: product.price * 0.7, // Default to 70% of selling price
-      notes: "",
-    });
+    setFormData(prev => ({ ...prev, purchasePrice: +(product.price * 0.7).toFixed(2) }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting stock-in form:", formData);
-
     if (!selectedProduct) {
-      toast({
-        title: "No Product Selected",
-        description: "Please select a product before proceeding",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.quantity <= 0) {
-      toast({
-        title: "Invalid Quantity",
-        description: "Quantity must be greater than 0",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.purchasePrice <= 0) {
-      toast({
-        title: "Invalid Purchase Price",
-        description: "Purchase price must be greater than 0",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.supplier.trim()) {
-      toast({
-        title: "Supplier Required",
-        description: "Please enter the supplier name",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please select a product.", variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const headers = getAuthHeaders();
+      
+      const body = {
+        productId: selectedProduct.id,
+        quantity: formData.quantity,
+        supplier: formData.supplier,
+        purchasePrice: formData.purchasePrice,
+        notes: formData.notes,
+      };
 
-      // Update local stock
-      const updatedProducts = products.map((p) =>
-        p.id === selectedProduct.id
-          ? { ...p, stock: p.stock + formData.quantity }
-          : p
-      );
-
-      setProducts(updatedProducts);
-      setFilteredProducts(updatedProducts);
-
-      toast({
-        title: "Stock-In Processed Successfully",
-        description: `Added ${formData.quantity} units of ${formData.productName} to inventory`,
+      const response = await fetch("http://localhost:5000/api/inventory/stock-in", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
       });
 
-      // Reset form
-      setSelectedProduct(null);
-      setFormData({
-        productId: "",
-        productName: "",
-        price: 0,
-        category: "",
-        quantity: 1,
-        supplier: "",
-        purchasePrice: 0,
-        notes: "",
-      });
-      setSearchTerm("");
+      if (!response.ok) {
+        let errorMessage = "Failed to process stock-in.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || JSON.stringify(errorData);
+        } catch (e) {
+            errorMessage = `Server Error: ${response.status}. Check backend console.`;
+        }
+        throw new Error(errorMessage);
+      }
 
-      console.log("Stock-in completed successfully");
-    } catch (error) {
-      console.error("Stock-in error:", error);
-      toast({
-        title: "Processing Failed",
-        description: "Unable to process stock-in. Please try again.",
-        variant: "destructive",
-      });
+      const updatedProduct = await response.json();
+      
+    
+      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+      toast({ title: "Success", description: `Added ${formData.quantity} units of ${selectedProduct.name}.` });
+      resetForm();
+
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setSelectedProduct(null);
-    setFormData({
-      productId: "",
-      productName: "",
-      price: 0,
-      category: "",
-      quantity: 1,
-      supplier: "",
-      purchasePrice: 0,
-      notes: "",
-    });
-    setSearchTerm("");
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: ['quantity', 'purchasePrice'].includes(name) ? Number(value) : value }));
   };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-600" />
-            <p className="text-slate-600">Loading products...</p>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const resetForm = () => {
+    setSelectedProduct(null);
+    setSearchTerm("");
+    setFormData({ quantity: 1, supplier: "", purchasePrice: 0, notes: "" });
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Stock-In Management
-            </h1>
-          </div>
-        </div>
-
+        <h1 className="text-2xl font-bold text-gray-900">Stock-In Management</h1>
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Product Selection */}
-          <Card className="border-slate-200">
-            <CardContent className="p-6 space-y-4">
+          <Card>
+            <CardHeader><CardTitle>1. Select a Product</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search by name, category, or ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-slate-300 focus:border-slate-500"
-                />
+                <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" disabled={!!selectedProduct} />
               </div>
-
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-all hover:bg-slate-50 ${
-                      selectedProduct?.id === product.id
-                        ? "bg-slate-100 border-slate-400 shadow-sm"
-                        : "border-slate-200"
-                    }`}
-                    onClick={() => handleProductSelect(product)}
-                  >
-                    <img
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.name}
-                      className="h-12 w-12 rounded-lg object-cover border border-slate-200"
-                    />
+                {isLoading ? (<p className="text-center py-4">Loading...</p>) : filteredProducts.map((product) => (
+                  <div key={product.id} className={`flex items-center gap-4 p-3 border rounded-lg cursor-pointer ${selectedProduct?.id === product.id ? "bg-slate-100 border-slate-400" : "hover:bg-slate-50"}`}
+                    onClick={() => !selectedProduct && handleProductSelect(product)}>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-slate-900">
-                        {product.name}
-                      </h4>
-                      <p className="text-sm text-slate-600">
-                        {product.category} • ${product.price.toLocaleString()}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium text-slate-700">
-                          Current: {product.stock} units
-                        </span>
-                      </div>
+                      <h4 className="font-semibold">{product.name}</h4>
+                      {/* Using 'quantity' to match the database schema */}
+                      <p className="text-sm text-slate-600">Current Stock: {product.quantity} units</p>
                     </div>
                   </div>
                 ))}
+                {filteredProducts.length === 0 && !isLoading && <p className="text-center py-4">No products found for your search.</p>}
               </div>
-
-              {filteredProducts.length === 0 && (
-                <div className="text-center py-12">
-                  <Package className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600 font-medium">
-                    No products found
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    Try adjusting your search terms
-                  </p>
-                </div>
+            </CardContent>
+          </Card>
+          
+          {/* Stock-In Form */}
+          <Card>
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle>2. Enter Stock-In Details</CardTitle>
+              {selectedProduct && <Button variant="ghost" size="sm" onClick={resetForm}><X className="mr-2 h-4 w-4" />Clear Selection</Button>}
+            </CardHeader>
+            <CardContent>
+              {!selectedProduct ? (
+                <div className="flex items-center justify-center h-full text-center text-slate-500">Please select a product from the list.</div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <h3 className="font-bold">{selectedProduct.name}</h3>
+                    <p className="text-sm">Current Stock: {selectedProduct.quantity}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><Label htmlFor="quantity">Quantity to Add</Label><Input id="quantity" name="quantity" type="number" min="1" value={formData.quantity} onChange={handleFormChange} required /></div>
+                    <div><Label htmlFor="purchasePrice">Purchase Price (per unit)</Label><Input id="purchasePrice" name="purchasePrice" type="number" min="0.01" step="0.01" value={formData.purchasePrice} onChange={handleFormChange} required /></div>
+                  </div>
+                  <div><Label htmlFor="supplier">Supplier</Label><Input id="supplier" name="supplier" value={formData.supplier} onChange={handleFormChange} required /></div>
+                  <div><Label htmlFor="notes">Notes (Optional)</Label><Textarea id="notes" name="notes" value={formData.notes} onChange={handleFormChange} /></div>
+                  <Button type="submit" disabled={isSubmitting} className="w-full bg-gray-700 hover:bg-gray-800">
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Add to Stock
+                  </Button>
+                </form>
               )}
             </CardContent>
           </Card>
