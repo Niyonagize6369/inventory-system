@@ -49,7 +49,7 @@ export default function LoginPage() {
           title: "Login successful",
           description: "Welcome back!",
         });
-        // Navigation is handled in the auth provider
+        
       } else {
         toast({
           title: "Login failed",
@@ -68,7 +68,7 @@ export default function LoginPage() {
     }
   };
 
-  // Don't render login form if user is already logged in
+
   if (user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -123,7 +123,7 @@ export default function LoginPage() {
               Forgot your password?
             </Link>
           </div>
-          <div className="mt-2 text-center text-sm">
+          {/* <div className="mt-2 text-center text-sm">
             {"Don't have an account? "}
             <Link
               href="/auth/register"
@@ -131,7 +131,7 @@ export default function LoginPage() {
             >
               Sign up
             </Link>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>

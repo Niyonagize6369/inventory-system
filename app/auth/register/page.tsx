@@ -33,7 +33,7 @@ export default function RegisterPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  // Redirect if already logged in
+  
   useEffect(() => {
     if (user) {
       if (user.role === "admin") {
@@ -72,7 +72,7 @@ export default function RegisterPage() {
           title: "Registration successful",
           description: "Your account has been created!",
         });
-        // Navigation is handled in the auth provider
+
       } else {
         toast({
           title: "Registration failed",
@@ -91,7 +91,7 @@ export default function RegisterPage() {
     }
   };
 
-  // Don't render register form if user is already logged in
+  
   if (user) {
     return (
       <div className="flex items-center justify-center min-h-screen">

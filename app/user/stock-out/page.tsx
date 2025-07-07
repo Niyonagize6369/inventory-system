@@ -1,187 +1,139 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { useState, useEffect, useMemo } from "react";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Package, Search, X } from "lucide-react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2, Package, Search } from "lucide-react"
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  category: string
-  stock: number
-  image: string
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image_url: string;
+  category: string;
 }
 
 interface StockOutForm {
-  productId: string
-  productName: string
-  price: number
-  category: string
-  quantity: number
-  reason: string
+  quantity: number;
+  reason: string;
 }
 
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("authToken");
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+};
+
+
 export default function StockOutPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<StockOutForm>({
-    productId: "",
-    productName: "",
-    price: 0,
-    category: "",
     quantity: 1,
     reason: "",
-  })
+  });
 
-  const { toast } = useToast()
-  const router = useRouter()
+  const { toast } = useToast();
 
+  
   useEffect(() => {
-    // Mock data - replace with actual API call
-    const mockProducts: Product[] = [
-      {
-        id: "1",
-        name: "Laptop Dell XPS 13",
-        price: 1200,
-        category: "Electronics",
-        stock: 15,
-        image: "/placeholder.svg?height=60&width=60",
-      },
-      {
-        id: "2",
-        name: "Office Chair",
-        price: 250,
-        category: "Furniture",
-        stock: 8,
-        image: "/placeholder.svg?height=60&width=60",
-      },
-      {
-        id: "3",
-        name: "Wireless Mouse",
-        price: 35,
-        category: "Electronics",
-        stock: 45,
-        image: "/placeholder.svg?height=60&width=60",
-      },
-      {
-        id: "4",
-        name: "Monitor 24 inch",
-        price: 300,
-        category: "Electronics",
-        stock: 22,
-        image: "/placeholder.svg?height=60&width=60",
-      },
-    ]
+    const fetchProducts = async () => {
+      try {
+        const headers = getAuthHeaders();
+        const response = await fetch("http://localhost:5000/api/products", { headers });
+        if (!response.ok) throw new Error("Failed to load products.");
+        
+        const data = await response.json();
+        setProducts(data.data || []);
+      } catch (error: any) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [toast]);
 
-    setProducts(mockProducts)
-    setFilteredProducts(mockProducts)
-  }, [])
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = products.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-      setFilteredProducts(filtered)
-    } else {
-      setFilteredProducts(products)
-    }
-  }, [searchTerm, products])
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    return products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [products, searchTerm]);
 
   const handleProductSelect = (product: Product) => {
-    setSelectedProduct(product)
-    setFormData({
-      productId: product.id,
-      productName: product.name,
-      price: product.price,
-      category: product.category,
-      quantity: 1,
-      reason: "",
-    })
-  }
+    setSelectedProduct(product);
+    setFormData({ quantity: 1, reason: "" });
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: name === 'quantity' ? Number(value) : value }));
+  };
+
+  const resetForm = () => {
+    setSelectedProduct(null);
+    setSearchTerm("");
+    setFormData({ quantity: 1, reason: "" });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+    e.preventDefault();
     if (!selectedProduct) {
-      toast({
-        title: "Error",
-        description: "Please select a product",
-        variant: "destructive",
-      })
-      return
+      toast({ title: "Error", description: "Please select a product.", variant: "destructive" });
+      return;
+    }
+    if (formData.quantity > selectedProduct.quantity) {
+      toast({ title: "Error", description: `Cannot stock out more than available: ${selectedProduct.quantity} units.`, variant: "destructive" });
+      return;
+    }
+    if (!formData.reason) {
+      toast({ title: "Validation Error", description: "Please select a reason for the stock-out.", variant: "destructive" });
+      return;
     }
 
-    if (formData.quantity > selectedProduct.stock) {
-      toast({
-        title: "Error",
-        description: `Cannot stock out more than available quantity (${selectedProduct.stock})`,
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (formData.quantity <= 0) {
-      toast({
-        title: "Error",
-        description: "Quantity must be greater than 0",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsLoading(true)
-
+    setIsSubmitting(true);
     try {
-      // Mock API call - replace with actual API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const headers = getAuthHeaders();
+      const body = {
+        productId: selectedProduct.id,
+        quantity: formData.quantity,
+        reason: formData.reason,
+      };
 
-      // Update local stock (in real app, this would be handled by the API)
-      setProducts((prev) =>
-        prev.map((p) => (p.id === selectedProduct.id ? { ...p, stock: p.stock - formData.quantity } : p)),
-      )
+      const response = await fetch("http://localhost:5000/api/inventory/stock-out", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
 
-      toast({
-        title: "Stock Out Successful",
-        description: `${formData.quantity} units of ${formData.productName} have been removed from inventory`,
-      })
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to process stock-out.");
+      }
+      
+      
+      setProducts(prev => prev.map(p => p.id === result.id ? result : p));
+      toast({ title: "Success", description: `Removed ${formData.quantity} units of ${selectedProduct.name}.` });
+      resetForm();
 
-      // Reset form
-      setSelectedProduct(null)
-      setFormData({
-        productId: "",
-        productName: "",
-        price: 0,
-        category: "",
-        quantity: 1,
-        reason: "",
-      })
-      setSearchTerm("")
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process stock out. Please try again.",
-        variant: "destructive",
-      })
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <DashboardLayout>
@@ -189,165 +141,79 @@ export default function StockOutPage() {
         <h1 className="text-lg font-semibold md:text-2xl">Stock Out Form</h1>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Product Selection */}
+      <div className="grid gap-6 lg:grid-cols-2 mt-4">
+        
         <Card>
           <CardHeader>
-            <CardTitle>Select Product</CardTitle>
-            <CardDescription>Search and select a product to stock out</CardDescription>
+            <CardTitle>1. Select Product</CardTitle>
+            <CardDescription>Search and select a product to stock out.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
+              <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8" disabled={!!selectedProduct} />
             </div>
-
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors hover:bg-muted ${
-                    selectedProduct?.id === product.id ? "bg-muted border-primary" : ""
-                  }`}
-                  onClick={() => handleProductSelect(product)}
-                >
-                  <img
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    className="h-12 w-12 rounded-lg object-cover"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium">{product.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {product.category} • ${product.price}
-                    </p>
-                    <p className="text-sm">Stock: {product.stock} units</p>
+              {isInitialLoading ? (
+                <div className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
+              ) : filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <div key={product.id} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors hover:bg-muted ${selectedProduct?.id === product.id ? "bg-muted border-primary" : ""}`}
+                    onClick={() => !selectedProduct && handleProductSelect(product)}>
+                    <div className="flex-1">
+                      <h4 className="font-medium">{product.name}</h4>
+                      <p className="text-sm">Current Stock: {product.quantity} units</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">No products found.</div>
+              )}
             </div>
-
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-8">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No products found</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Stock Out Form */}
+        
         <Card>
-          <CardHeader>
-            <CardTitle>Stock Out Details</CardTitle>
-            <CardDescription>Enter the details for stock out transaction</CardDescription>
+          <CardHeader className="flex flex-row justify-between items-center">
+            <CardTitle>2. Stock Out Details</CardTitle>
+            {selectedProduct && <Button variant="ghost" size="sm" onClick={resetForm}><X className="mr-2 h-4 w-4" />Clear</Button>}
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="productName">Product Name</Label>
-                <Input id="productName" value={formData.productName} disabled placeholder="Select a product first" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price</Label>
-                  <Input id="price" value={formData.price ? `$${formData.price}` : ""} disabled placeholder="$0.00" />
+            {!selectedProduct ? (
+              <div className="flex items-center justify-center h-full text-center text-slate-500 py-10">Select a product from the list to begin.</div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg space-y-1">
+                  <h4 className="font-semibold">{selectedProduct.name}</h4>
+                  <p className="text-sm text-muted-foreground">Available Stock: {selectedProduct.quantity}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input id="category" value={formData.category} disabled placeholder="Category" />
+                <div>
+                  <Label htmlFor="quantity">Quantity to Stock Out</Label>
+                  <Input id="quantity" name="quantity" type="number" min="1" max={selectedProduct.quantity} value={formData.quantity} onChange={handleFormChange} required />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity to Stock Out</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  max={selectedProduct?.stock || 0}
-                  value={formData.quantity}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      quantity: Number.parseInt(e.target.value) || 0,
-                    }))
-                  }
-                  disabled={!selectedProduct}
-                  placeholder="Enter quantity"
-                />
-                {selectedProduct && (
-                  <p className="text-sm text-muted-foreground">Available: {selectedProduct.stock} units</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reason">Reason (Optional)</Label>
-                <Select
-                  value={formData.reason}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, reason: value }))}
-                  disabled={!selectedProduct}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select reason" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sale">Sale</SelectItem>
-                    <SelectItem value="damaged">Damaged</SelectItem>
-                    <SelectItem value="expired">Expired</SelectItem>
-                    <SelectItem value="transfer">Transfer</SelectItem>
-                    <SelectItem value="return">Return</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedProduct && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <h4 className="font-medium mb-2">Transaction Summary</h4>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span>Product:</span>
-                      <span>{formData.productName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Quantity:</span>
-                      <span>{formData.quantity} units</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Unit Price:</span>
-                      <span>${formData.price}</span>
-                    </div>
-                    <div className="flex justify-between font-medium">
-                      <span>Total Value:</span>
-                      <span>${(formData.price * formData.quantity).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Remaining Stock:</span>
-                      <span>{selectedProduct.stock - formData.quantity} units</span>
-                    </div>
-                  </div>
+                <div>
+                  <Label htmlFor="reason">Reason</Label>
+                  <Select name="reason" value={formData.reason} onValueChange={(value) => setFormData(p => ({ ...p, reason: value }))} required>
+                    <SelectTrigger><SelectValue placeholder="Select a reason..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sale">Sale</SelectItem>
+                      <SelectItem value="Damaged">Damaged/Expired</SelectItem>
+                      <SelectItem value="Internal Use">Internal Use</SelectItem>
+                      <SelectItem value="Return to Supplier">Return to Supplier</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={!selectedProduct || isLoading || formData.quantity <= 0}
-              >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Process Stock Out
-              </Button>
-            </form>
+                <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={!selectedProduct || isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Process Stock Out
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }
